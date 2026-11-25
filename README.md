@@ -146,8 +146,9 @@ starten automatisch naar deze indeling verhuisd; er wordt daarbij niets overschr
 - **`dev`** is de werk-branch. Wijzigingen komen eerst hier. GitHub bouwt de container dan als
   controle, maar publiceert niets.
 - **`main`** is wat er op de server draait. Bij elke push naar `main` bouwt GitHub Actions
-  automatisch een nieuwe container (`ghcr.io/blomruben/wijnkelder:latest`).
+  automatisch een nieuwe container (`ghcr.io/blomruben/blom-app:latest`).
 - Op Unraid: **Docker → Check for Updates → apply update**. Zie [UNRAID.md](UNRAID.md).
+- De code staat op [github.com/BlomRuben/blom-app](https://github.com/BlomRuben/blom-app) (tot 25 november 2026: `wijnkelder`).
 
 Lokaal testen met de server:
 
