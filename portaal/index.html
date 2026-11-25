@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+  <title>Blom App</title>
+  <link rel="stylesheet" href="../gedeeld/blom.css">
+  <link rel="stylesheet" href="portaal.css">
+</head>
+<body>
+  <header class="topbar">
+    <div id="blom-head" class="topbar-head" data-title="Blom App" data-icon="🌿"></div>
+    <nav class="tabs" id="portal-tabs" hidden>
+      <button data-tab="start" class="active">Start</button>
+      <button data-tab="koppelingen">Koppelingen</button>
+      <button data-tab="account">Je account</button>
+      <button data-tab="gebruikers" id="tab-btn-gebruikers" hidden>Gebruikers</button>
+    </nav>
+  </header>
+
+  <!-- Inloggen of de eerste admin aanmaken -->
+  <section id="auth-screen" class="auth-screen" hidden>
+    <form id="form-auth" class="card auth-card">
+      <h2 id="auth-title">Inloggen</h2>
+      <p id="auth-intro" class="muted"></p>
+      <label>Gebruikersnaam<input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+      <label>Wachtwoord<input name="password" type="password" required autocomplete="current-password"></label>
+      <label id="auth-repeat">Herhaal wachtwoord<input name="repeat" type="password" autocomplete="new-password"></label>
+      <p id="auth-error" class="error" role="alert"></p>
+      <button type="submit" class="primary">Inloggen</button>
+    </form>
+  </section>
+
+  <main id="portal-main" hidden>
+    <!-- Start: een tegel per app -->
+    <section id="tab-start" class="tab active">
+      <h2 id="greeting" class="greeting"></h2>
+      <div id="module-tiles" class="module-tiles"></div>
+    </section>
+
+    <!-- Koppelingen met externe diensten -->
+    <section id="tab-koppelingen" class="tab">
+      <p class="muted intro">Hier stel je koppelingen met andere diensten één keer in. Alle apps kunnen ze daarna
+        gebruiken. Sleutels en wachtwoorden worden versleuteld op de server bewaard en nooit meer getoond.</p>
+      <div id="connector-list" class="connector-list"></div>
+    </section>
+
+    <!-- Eigen account -->
+    <section id="tab-account" class="tab">
+      <div class="cards">
+        <form id="form-password" class="card">
+          <h3>Wachtwoord wijzigen</h3>
+          <p class="muted small">Je bent ingelogd als <strong id="account-name"></strong>. Na het wijzigen moet je op
+            je andere apparaten opnieuw inloggen.</p>
+          <div class="form-grid">
+            <label class="span2">Huidig wachtwoord<input name="current" type="password" required autocomplete="current-password"></label>
+            <label>Nieuw wachtwoord<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+            <label>Herhaal nieuw wachtwoord<input name="repeat" type="password" required autocomplete="new-password"></label>
+          </div>
+          <p id="password-error" class="error" role="alert"></p>
+          <p id="password-ok" class="ok small" hidden>Je wachtwoord is gewijzigd.</p>
+          <div class="row"><button type="submit" class="primary">Opslaan</button></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Gebruikers: alleen voor een admin -->
+    <section id="tab-gebruikers" class="tab">
+      <div class="toolbar">
+        <h2 class="grow">Gebruikers</h2>
+        <button class="primary" data-action="add-user">+ Gebruiker toevoegen</button>
+      </div>
+      <div id="user-list"></div>
+    </section>
+  </main>
+
+  <dialog id="dlg-user">
+    <form id="form-user">
+      <h2 id="user-form-title">Gebruiker toevoegen</h2>
+      <div class="form-grid">
+        <label class="span2">Gebruikersnaam *<input name="username" required autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+        <label>Rol
+          <select name="role">
+            <option value="user">Gebruiker</option>
+            <option value="admin">Admin</option>
+          </select>
+        </label>
+        <label id="user-password-label">Wachtwoord *<input name="password" type="password" autocomplete="new-password"></label>
+        <fieldset class="span2" id="user-modules">
+          <legend>Apps die deze gebruiker mag gebruiken</legend>
+          <div id="user-module-checks" class="module-checks"></div>
+          <p class="hint muted small" id="user-modules-admin">Een admin mag altijd alle apps gebruiken.</p>
+        </fieldset>
+      </div>
+      <p id="user-error" class="error" role="alert"></p>
+      <menu>
+        <button type="button" data-close>Annuleren</button>
+        <button type="submit" class="primary">Opslaan</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="../gedeeld/blom.js"></script>
+  <script src="portaal.js"></script>
+</body>
+</html>

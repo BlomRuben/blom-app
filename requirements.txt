@@ -1,0 +1,3 @@
+# Alleen nodig voor de koppeling Claude (core/koppelingen/claude.py).
+# Zonder dit pakket werkt de rest van de app gewoon; die koppeling meldt dan dat het ontbreekt.
+anthropic>=2.14,<3

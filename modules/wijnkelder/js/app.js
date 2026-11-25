@@ -41,13 +41,9 @@ let placeCtx = null;
 
 // ---------- Hulpfuncties ----------
 
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
+// $, $$ en esc komen uit gedeeld/blom.js
 const euro = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' });
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
 function money(n) { return n == null ? '–' : euro.format(n); }
 function num(v) { if (v === '' || v == null) return null; const n = Number(v); return Number.isFinite(n) ? n : null; }
 function sum(list, fn) { return list.reduce((t, x) => t + (fn(x) || 0), 0); }
@@ -164,7 +160,6 @@ function showTab(name) {
   $$('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   $$('.tab').forEach(s => s.classList.toggle('active', s.id === 'tab-' + name));
   if (name === 'kaart') renderMap();
-  if (name === 'gegevens' && currentUser?.role === 'admin') loadUsers();
 }
 
 // ---------- Overzicht ----------
@@ -583,18 +578,58 @@ function openAiDialog() {
   $('#ai-photo-done').textContent = 'en plak hem meteen in de chat (Ctrl+V).';
   $('#ai-answer').value = '';
   $('#ai-dialog-status').textContent = '';
+  $('#ai-direct').hidden = !Blom.hasConnector('claude');
+  $('#btn-ai-direct').disabled = false;
   $('#dlg-ai').showModal();
 }
 
-async function copyAiPrompt() {
+// De vraag uit het formulier bouwen (ook gebruikt voor kopiëren)
+function currentAiPrompt() {
   const form = $('#form-wine');
-  // Altijd opnieuw opbouwen uit wat er nu in het formulier staat
-  const prompt = WineAI.buildPrompt({
+  return WineAI.buildPrompt({
     name: form.elements.name.value.trim(),
     vintage: num(form.elements.vintage.value),
     producer: form.elements.producer.value.trim(),
     hasPhoto: !!formPhoto,
   });
+}
+
+// Direct via de koppeling Claude (portaal → Koppelingen): de server stelt de vraag
+async function aiDirect() {
+  const button = $('#btn-ai-direct');
+  const status = $('#ai-direct-status');
+  const original = status.textContent;
+  button.disabled = true;
+  status.textContent = 'Claude zoekt de wijn op… dit kan een minuut duren.';
+  let photo = null;
+  if (formPhoto) {
+    // Foto's op de server zijn een adres; Claude heeft de foto zelf nodig
+    photo = formPhoto.startsWith('data:') ? formPhoto : await photoAsDataUrl(formPhoto).catch(() => null);
+  }
+  try {
+    const { answer } = await apiSend('POST', 'api/wijnkelder/aanvullen', { prompt: currentAiPrompt(), photo });
+    $('#ai-answer').value = answer;
+    status.textContent = original;
+    applyAiAnswer();
+  } catch (err) {
+    status.textContent = `Dat lukte niet: ${err.message}`;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function photoAsDataUrl(src) {
+  const blob = await (await fetch(src)).blob();
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function copyAiPrompt() {
+  // Altijd opnieuw opbouwen uit wat er nu in het formulier staat
+  const prompt = currentAiPrompt();
   const box = $('#ai-prompt-text');
   if (await WineAI.copyText(prompt)) {
     box.hidden = true;
@@ -851,12 +886,7 @@ async function photosForBackup() {
       result[id] = src;
       continue;
     }
-    const blob = await (await fetch(src)).blob();
-    result[id] = await new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(blob);
-    });
+    result[id] = await photoAsDataUrl(src);
   }
   return result;
 }
@@ -948,11 +978,6 @@ function onDocumentClick(e) {
       case 'import':      $('#import-file').click(); break;
       case 'load-sample': loadSample(); break;
       case 'clear-all':   clearAll(); break;
-      case 'logout':      logout(); break;
-      case 'change-password': openPasswordForm(); break;
-      case 'add-user':    openUserForm(); break;
-      case 'edit-user':   openUserForm(users.find(u => u.id === id)); break;
-      case 'delete-user': deleteUser(id); break;
     }
     return;
   }
@@ -1032,9 +1057,6 @@ async function init() {
   $('#form-wine').addEventListener('submit', onWineSubmit);
   $('#form-wish').addEventListener('submit', onWishSubmit);
   $('#form-rack').addEventListener('submit', onRackSubmit);
-  $('#form-auth').addEventListener('submit', onAuthSubmit);
-  $('#form-password').addEventListener('submit', onPasswordSubmit);
-  $('#form-user').addEventListener('submit', onUserSubmit);
   $('#btn-delete-rack').addEventListener('click', deleteRack);
   // Als het wijnformulier sluit (opslaan óf annuleren), vergeten we wat er "klaarstond"
   $('#dlg-wine').addEventListener('close', () => { pendingPlacement = null; pendingWishId = null; });
@@ -1062,6 +1084,7 @@ async function init() {
   $('#btn-ai-copy').addEventListener('click', copyAiPrompt);
   $('#btn-ai-copy-photo').addEventListener('click', copyAiPhoto);
   $('#btn-ai-apply').addEventListener('click', applyAiAnswer);
+  $('#btn-ai-direct').addEventListener('click', aiDirect);
   // Zodra je een geel (door Claude ingevuld) veld zelf aanpast, is het niet meer geel
   $('#form-wine').addEventListener('input', e => {
     e.target.classList.remove('ai-filled', 'ai-changed');
@@ -1085,30 +1108,23 @@ async function init() {
     if (saving || dirty) e.preventDefault();
   });
 
-  // Verlopen sessie, of elders je wachtwoord gewijzigd: terug naar het inlogscherm
-  document.addEventListener('wijnkelder:uitgelogd', () => {
-    if (document.body.classList.contains('logged-out')) return;
-    dirty = false;   // opslaan kan niet meer; niet blijven proberen of waarschuwen bij het verlaten
-    showAuthScreen('login', { message: 'Je bent uitgelogd, bijvoorbeeld omdat je wachtwoord is gewijzigd. Log opnieuw in.' });
-  });
+  // Verlopen sessie, of elders je wachtwoord gewijzigd: blom.js stuurt je naar het inlogscherm.
+  // Opslaan kan dan niet meer; niet blijven proberen of waarschuwen bij het verlaten.
+  document.addEventListener('blom:uitgelogd', () => { dirty = false; });
 
   $('#storage-info').textContent = Storage.remote
     ? 'Je gegevens en foto\'s staan op je server in je eigen kelder: je ziet ze op elk apparaat waarop je inlogt. ' +
       'De server bewaart zelf elke dag een kopie; een back-up downloaden kan altijd nog extra.'
     : 'Je gegevens worden opgeslagen in deze browser. Maak af en toe een back-up, dan raak je nooit iets kwijt.';
+  $('#portal-hint').hidden = !Storage.remote;
 
-  // Via de server eerst kijken wie er is ingelogd
-  if (Storage.remote) {
-    let session;
-    try {
-      session = await Auth.session();
-    } catch (err) {
-      $('#tab-overzicht').innerHTML = `<div class="empty-state card"><h2>De server is niet bereikbaar</h2>
-        <p>${esc(err.message)} Ververs de pagina om het opnieuw te proberen.</p></div>`;
-      return;
-    }
-    if (!session.user) return showAuthScreen(session.setup ? 'setup' : 'login', { legacy: session.legacy });
-    showUser(session.user);
+  // Via de server: inloggen gebeurt in het portaal; blom.js controleert dat en tekent de kopbalk
+  try {
+    await Blom.start('wijnkelder');
+  } catch (err) {
+    $('#tab-overzicht').innerHTML = `<div class="empty-state card"><h2>De wijnkelder kan niet openen</h2>
+      <p>${esc(err.message)} Ververs de pagina om het opnieuw te proberen.</p></div>`;
+    return;
   }
 
   try {

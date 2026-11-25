@@ -4,47 +4,13 @@
 //  Opslag
 //  Er zijn twee manieren, de app kiest zelf:
 //  - Geopend via je server (http://…): gegevens en foto's staan
-//    op de server (server.py), dus je ziet overal dezelfde kelder.
+//    op de server, dus je ziet overal dezelfde kelder.
 //  - Als los bestand geopend (file://…): alles staat in deze browser.
 // ============================================================
 
-const SERVER_MODE = location.protocol === 'http:' || location.protocol === 'https:';
+// SERVER_MODE, api(), apiSend(), ConflictError en AuthError komen uit gedeeld/blom.js
 const STORAGE_KEY = 'wijnkelder-v1';
-
-// Fout als de gegevens intussen op een ander apparaat zijn gewijzigd
-class ConflictError extends Error {}
-// Fout als je niet (meer) bent ingelogd; de app toont dan het inlogscherm
-class AuthError extends Error {}
-
-// Doet een verzoek aan de server en geeft het JSON-antwoord terug
-async function api(path, options = {}) {
-  let res;
-  try {
-    res = await fetch(path, { cache: 'no-store', ...options });
-  } catch {
-    throw new Error('De server is niet bereikbaar.');
-  }
-  if (res.status === 409) throw new ConflictError('De gegevens zijn op een ander apparaat gewijzigd.');
-  if (res.status === 401) {
-    document.dispatchEvent(new Event('wijnkelder:uitgelogd'));
-    throw new AuthError('Je bent niet (meer) ingelogd.');
-  }
-  if (!res.ok) {
-    // De server legt in de meeste gevallen zelf uit wat er mis is
-    const message = await res.json().then(body => body.error, () => null);
-    throw new Error(message || `De server gaf een fout (${res.status}).`);
-  }
-  return res.json();
-}
-
-// JSON versturen naar de server
-function apiSend(method, path, body) {
-  return api(path, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body ?? {}),
-  });
-}
+const API = 'api/wijnkelder';
 
 const Storage = {
   remote: SERVER_MODE,
@@ -57,7 +23,7 @@ const Storage = {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? Storage.normalize(JSON.parse(raw)) : Storage.empty();
     }
-    const store = await api('api/data');
+    const store = await api(`${API}/data`);
     Storage.version = store.version;
     return store.data ? Storage.normalize(store.data) : Storage.empty();
   },
@@ -67,14 +33,14 @@ const Storage = {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       return;
     }
-    const result = await apiSend('PUT', 'api/data', { version: Storage.version, data });
+    const result = await apiSend('PUT', `${API}/data`, { version: Storage.version, data });
     Storage.version = result.version;
   },
 
   // Heeft een ander apparaat intussen iets opgeslagen?
   async hasNewer() {
     if (!SERVER_MODE) return false;
-    return (await api('api/version')).version !== Storage.version;
+    return (await api(`${API}/version`)).version !== Storage.version;
   },
 
   empty() {
@@ -107,17 +73,17 @@ const Storage = {
 const PhotosOnServer = {
   // Alle foto's als { wijnId: adres van de foto }
   async getAll() {
-    const { photos } = await api('api/photos');
-    return Object.fromEntries(Object.entries(photos).map(([id, v]) => [id, `api/photos/${id}?v=${v}`]));
+    const { photos } = await api(`${API}/photos`);
+    return Object.fromEntries(Object.entries(photos).map(([id, v]) => [id, blomUrl(`${API}/photos/${id}?v=${v}`)]));
   },
 
   async set(id, dataUrl) {
     const blob = await (await fetch(dataUrl)).blob();
-    await api(`api/photos/${id}`, { method: 'PUT', headers: { 'Content-Type': blob.type }, body: blob });
+    await api(`${API}/photos/${id}`, { method: 'PUT', headers: { 'Content-Type': blob.type }, body: blob });
   },
 
-  delete(id) { return api(`api/photos/${id}`, { method: 'DELETE' }); },
-  clear() { return api('api/photos', { method: 'DELETE' }); },
+  delete(id) { return api(`${API}/photos/${id}`, { method: 'DELETE' }); },
+  clear() { return api(`${API}/photos`, { method: 'DELETE' }); },
 
   async replaceAll(photos) {
     await this.clear();

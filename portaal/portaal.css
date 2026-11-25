@@ -1,0 +1,42 @@
+/* ============================================================
+   Portaal – aanvullende opmaak (de basis staat in gedeeld/blom.css)
+   ============================================================ */
+
+.greeting { margin: 0.5rem 0 1.25rem; font-weight: 600; }
+.intro { max-width: 760px; margin-top: 0; }
+
+/* Tegels met de apps */
+.module-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+.module-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 5px solid var(--tile-color, var(--accent));
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.module-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(40, 30, 30, 0.12); }
+.module-tile .icon { font-size: 2rem; line-height: 1; }
+.module-tile strong { font-size: 1.15rem; }
+.module-tile p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+/* Koppelingen */
+.connector-list { display: grid; gap: 1rem; max-width: 760px; }
+.connector-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.connector-head h3 { margin: 0; }
+.connector .used-by { margin: 0.25rem 0 0.75rem; }
+.connector-status { margin: 0.75rem 0 0; }
+
+/* Vinkjes voor de apps van een gebruiker */
+.module-checks { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; }
+.module-checks .check { color: var(--text); }

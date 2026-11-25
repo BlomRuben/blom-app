@@ -1,0 +1,280 @@
+/* ============================================================
+   Blom App – gedeelde opmaak voor het portaal en alle modules
+   Een module zet alleen zijn eigen kleur (--accent, --accent-hover)
+   en voegt opmaak toe die alleen voor die module geldt.
+   ============================================================ */
+
+:root {
+  --bg: #f6f4f1;
+  --surface: #ffffff;
+  --text: #24201f;
+  --muted: #6f6866;
+  --border: #e3ddd8;
+  --accent: #2f4858;
+  --accent-hover: #233846;
+  --accent-soft: #e6edf1;
+  --danger: #b3261e;
+  --good: #2e7d4f;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(40, 30, 30, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+h1, h2, h3 { margin: 0; line-height: 1.2; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1rem; margin-bottom: 0.75rem; }
+small { display: block; color: var(--muted); font-size: 0.8rem; font-weight: normal; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.grow { flex: 1; min-width: 0; }
+.spacer { flex: 1; }
+.pad { padding: 1rem; }
+[hidden] { display: none !important; }
+
+/* ---------- Kopbalk, wegwijzer & tabs ---------- */
+
+.topbar {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.75rem 1rem 0;
+}
+.topbar-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-bottom: 0.6rem; }
+.topbar h1 { font-size: 1.35rem; }
+.crumbs { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.crumbs a { color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 0.95rem; }
+.crumbs a:hover { color: #fff; text-decoration: underline; }
+.crumbs .sep { color: rgba(255, 255, 255, 0.5); }
+.account { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+.account select, .account button {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+  width: auto;
+  border-radius: 8px;
+}
+.account select option { color: var(--text); }
+.account button:hover { border-color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+.tabs { display: flex; gap: 0.25rem; overflow-x: auto; }
+.tabs button {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 8px 8px 0 0;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.tabs button:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+.tabs button.active { background: var(--bg); color: var(--accent); font-weight: 600; }
+/* Zonder tabs toch een beetje lucht onder de kopbalk */
+.topbar:not(:has(.tabs)) { padding-bottom: 0.1rem; }
+
+main { max-width: 1200px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+.banner {
+  background: #fdecea;
+  border: 1px solid #f1b7b2;
+  color: var(--danger);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.tab { display: none; }
+.tab.active { display: block; }
+
+/* ---------- Inlogscherm ---------- */
+
+.auth-screen { display: flex; justify-content: center; padding: 3rem 1rem; }
+.auth-card { width: min(380px, 100%); display: flex; flex-direction: column; gap: 0.85rem; }
+.auth-card label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: var(--muted); }
+.auth-card .error:empty { display: none; }
+.auth-card .error { margin: 0; }
+
+/* ---------- Knoppen & invoer ---------- */
+
+button, a.button {
+  font: inherit;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  text-decoration: none;
+  display: inline-block;
+}
+button:hover, a.button:hover { border-color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button.primary, a.button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary:hover, a.button.primary:hover { background: var(--accent-hover); }
+button.danger { color: var(--danger); }
+button.danger:hover { border-color: var(--danger); }
+
+input, select, textarea {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+label.button {
+  display: inline-block;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+}
+label.button:hover { border-color: var(--accent); }
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.toolbar input[type="search"] { flex: 1 1 240px; width: auto; }
+.toolbar select { width: auto; }
+.check { display: flex; align-items: center; gap: 0.35rem; font-size: 0.9rem; white-space: nowrap; }
+.check input { width: auto; }
+.row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.error { color: var(--danger); margin: 0.75rem 0 0; }
+.error:empty { display: none; }
+.ok { color: var(--good); }
+
+/* ---------- Kaarten & tegels ---------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  box-shadow: var(--shadow);
+}
+.tile-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.tile strong { display: block; font-size: 1.6rem; margin: 0.15rem 0; font-variant-numeric: tabular-nums; }
+
+.empty-state { max-width: 560px; margin: 2rem auto; text-align: center; }
+.empty-state .row { justify-content: center; }
+.empty-state p { color: var(--muted); }
+
+/* Staafjes (één reeks, één kleur) */
+.bar-row { display: grid; grid-template-columns: 8rem 1fr 4.5rem; align-items: center; gap: 0.5rem; margin: 0.35rem 0; }
+.bar-label { font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { background: var(--bg); border-radius: 4px; height: 0.8rem; overflow: hidden; }
+.bar { height: 100%; border-radius: 0 4px 4px 0; background: var(--accent); }
+.bar-val { text-align: right; font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+
+/* Korte lijstjes */
+.mini { list-style: none; margin: 0; padding: 0; }
+.mini li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.mini li:last-child { border-bottom: none; }
+.mini li.clickable { cursor: pointer; }
+.mini li.clickable:hover { background: var(--bg); }
+
+.dot {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+  vertical-align: middle;
+}
+
+.pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.pill { border-radius: 999px; display: flex; align-items: center; gap: 0.4rem; }
+.pill small { display: inline; }
+.pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pill.active small { color: rgba(255, 255, 255, 0.8); }
+
+.badge { font-size: 0.75rem; padding: 0.15rem 0.55rem; border-radius: 999px; background: var(--bg); white-space: nowrap; display: inline-block; }
+.badge.good { background: #e3f2e8; color: var(--good); }
+.badge.accent { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- Tabellen ---------- */
+
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.table th, .table td { padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+.table th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+.table tbody tr.clickable { cursor: pointer; }
+.table tbody tr:hover { background: var(--bg); }
+.table tbody tr:last-child td { border-bottom: none; }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table .actions { text-align: right; white-space: nowrap; }
+.table .actions button { padding: 0.3rem 0.7rem; font-size: 0.85rem; }
+.table small { display: block; }
+
+/* ---------- Dialogen ---------- */
+
+dialog {
+  border: none;
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+  width: min(640px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  color: var(--text);
+}
+dialog::backdrop { background: rgba(20, 15, 18, 0.45); }
+dialog h2 { margin-bottom: 1rem; }
+dialog menu { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; margin: 1.25rem 0 0; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; }
+.form-grid label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: var(--muted); }
+.form-grid .span2 { grid-column: span 2; }
+.form-grid .hint { font-size: 0.78rem; }
+.form-grid fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.75rem; margin: 0; }
+.form-grid legend { font-size: 0.85rem; color: var(--muted); padding: 0 0.25rem; }
+
+/* ---------- Kleine schermen ---------- */
+
+@media (max-width: 720px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid .span2 { grid-column: auto; }
+}

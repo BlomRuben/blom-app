@@ -1,0 +1,61 @@
+/* ============================================================
+   Financiën – opmaak van deze module (de basis staat in gedeeld/blom.css)
+   ============================================================ */
+
+:root {
+  --accent: #1f6f5c;
+  --accent-hover: #175746;
+  --accent-soft: #e1f0ea;
+  --over: #b3261e;          /* status: over budget (altijd met tekst erbij) */
+}
+
+.section-title { margin: 1.5rem 0 0.75rem; }
+.card-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.card-head h3 { margin: 0; }
+.categories-card { margin-top: 1rem; }
+.import-card { margin-bottom: 1rem; }
+
+/* Bedragen: het teken (+ of −) staat er altijd bij, kleur is extra */
+.amount { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.amount.plus { color: var(--good); }
+.tile strong.amount.plus { color: var(--good); }
+
+.tx-name { font-weight: 600; }
+.tx-desc { color: var(--muted); font-size: 0.8rem; display: block; max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table td select { padding: 0.25rem 0.4rem; font-size: 0.85rem; min-width: 9rem; }
+.table tbody tr[data-tx] { cursor: pointer; }
+.no-category { border-color: #e8963c; background: #fff6ea; }
+
+/* Klikbare tegel (bijv. "zonder categorie") */
+.tile.clickable { cursor: pointer; }
+.tile.clickable:hover { border-color: var(--accent); }
+
+/* Budget: voortgangsbalk per categorie */
+.budget-row { display: grid; grid-template-columns: 10rem 1fr 13rem; align-items: center; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+.budget-row:last-child { border-bottom: none; }
+.budget-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.budget-track { position: relative; background: var(--bg); border-radius: 4px; height: 0.9rem; overflow: hidden; }
+.budget-fill { height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; }
+.budget-fill.over { background: var(--over); }
+.budget-nums { text-align: right; font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+.budget-nums small { display: block; }
+.over-label { color: var(--over); font-weight: 600; }
+
+/* Importeren */
+.mapping-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem 1rem; }
+.mapping-grid label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: var(--muted); }
+.desc-columns { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.desc-columns .check { color: var(--text); font-size: 0.85rem; }
+.import-stats { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+.is-duplicate { opacity: 0.45; }
+.is-error td { color: var(--danger); }
+
+.list-plain { list-style: none; margin: 0; padding: 0; }
+.list-plain li { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.25rem; border-bottom: 1px solid var(--border); cursor: pointer; }
+.list-plain li:last-child { border-bottom: none; }
+.list-plain li:hover { background: var(--bg); }
+
+@media (max-width: 720px) {
+  .budget-row { grid-template-columns: 1fr; gap: 0.3rem; }
+  .budget-nums { text-align: left; }
+}

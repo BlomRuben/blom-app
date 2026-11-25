@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💶</text></svg>">
+  <title>Financiën</title>
+  <link rel="stylesheet" href="../../gedeeld/blom.css">
+  <link rel="stylesheet" href="css/financien.css">
+</head>
+<body>
+  <header class="topbar">
+    <div id="blom-head" class="topbar-head" data-title="Financiën" data-icon="💶"></div>
+    <nav class="tabs">
+      <button data-tab="overzicht" class="active">Overzicht</button>
+      <button data-tab="transacties">Transacties</button>
+      <button data-tab="budget">Budget</button>
+      <button data-tab="importeren">Importeren</button>
+      <button data-tab="instellingen">Instellingen</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="banner" class="banner" role="alert" hidden></div>
+
+    <!-- Overzicht: wordt door financien.js gevuld -->
+    <section id="tab-overzicht" class="tab active"><p class="muted">Laden…</p></section>
+
+    <!-- Transacties -->
+    <section id="tab-transacties" class="tab">
+      <div class="toolbar">
+        <input id="tx-search" type="search" placeholder="Zoek op naam, omschrijving of bedrag…">
+        <select id="tx-month" aria-label="Maand"></select>
+        <select id="tx-account" aria-label="Rekening"></select>
+        <select id="tx-category" aria-label="Categorie"></select>
+        <span class="spacer"></span>
+        <button class="primary" data-action="add-tx">+ Transactie</button>
+      </div>
+      <p id="tx-summary" class="muted small"></p>
+      <div id="tx-list"></div>
+    </section>
+
+    <!-- Budget -->
+    <section id="tab-budget" class="tab">
+      <div class="toolbar">
+        <h2 class="grow">Budget</h2>
+        <select id="budget-month" aria-label="Maand"></select>
+      </div>
+      <div id="budget-view"></div>
+    </section>
+
+    <!-- Importeren -->
+    <section id="tab-importeren" class="tab">
+      <div class="card import-card">
+        <h3>Bankafschrift importeren</h3>
+        <p class="muted small">Download in je internetbankieren de transacties als CSV-bestand (of bij ABN AMRO als TXT)
+          en kies dat bestand hier. ING, Rabobank, ABN AMRO en bunq worden herkend; bij andere banken kies je zelf welke
+          kolom wat is. Transacties die er al in staan, worden overgeslagen.</p>
+        <div class="form-grid">
+          <label>Naar rekening<select id="import-account"></select></label>
+          <label>Bestand<input type="file" id="import-file" accept=".csv,.txt,.tab,text/csv,text/plain"></label>
+        </div>
+      </div>
+      <div id="import-mapping"></div>
+      <div id="import-preview"></div>
+    </section>
+
+    <!-- Instellingen -->
+    <section id="tab-instellingen" class="tab">
+      <div class="cards">
+        <div class="card">
+          <div class="card-head"><h3 class="grow">Rekeningen</h3><button data-action="add-account">+ Rekening</button></div>
+          <div id="account-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3 class="grow">Regels</h3><button data-action="add-rule">+ Regel</button></div>
+          <p class="muted small">Een regel deelt transacties automatisch in: bevat de naam of omschrijving de tekst,
+            dan krijgt de transactie die categorie. De eerste regel die past, wint.</p>
+          <div id="rule-list"></div>
+          <div class="row"><button data-action="apply-rules">Regels toepassen op transacties zonder categorie</button></div>
+        </div>
+        <div class="card">
+          <h3>Back-up</h3>
+          <p id="storage-info" class="small"></p>
+          <div class="row">
+            <button class="primary" data-action="export">Back-up downloaden</button>
+            <button data-action="import-backup">Back-up terugzetten…</button>
+            <input type="file" id="backup-file" accept=".json,application/json" hidden>
+          </div>
+          <div class="row">
+            <button data-action="load-sample">Voorbeelddata laden</button>
+            <button class="danger" data-action="clear-all">Alles wissen</button>
+          </div>
+        </div>
+      </div>
+      <div class="card categories-card">
+        <div class="card-head"><h3 class="grow">Categorieën en budgetten</h3><button data-action="add-category">+ Categorie</button></div>
+        <div id="category-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== Dialogen ===== -->
+
+  <dialog id="dlg-tx">
+    <form id="form-tx">
+      <h2 id="tx-form-title">Transactie</h2>
+      <div class="form-grid">
+        <label>Datum *<input name="date" type="date" required></label>
+        <label>Bedrag (€) *<input name="amount" type="number" step="0.01" required placeholder="negatief = uitgave"></label>
+        <label class="span2">Naam / tegenpartij<input name="counterparty"></label>
+        <label class="span2">Omschrijving<textarea name="description" rows="2"></textarea></label>
+        <label>Rekening<select name="accountId"></select></label>
+        <label>Categorie<select name="categoryId"></select></label>
+        <label class="check span2" id="tx-remember-label"><input type="checkbox" name="remember">
+          <span id="tx-remember-text">Onthoud dit: deze naam voortaan altijd in deze categorie</span></label>
+        <label class="span2">Notitie<input name="note"></label>
+      </div>
+      <menu>
+        <button type="button" class="danger" id="btn-delete-tx">Verwijderen</button>
+        <span class="spacer"></span>
+        <button type="button" data-close>Annuleren</button>
+        <button type="submit" class="primary">Opslaan</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-account">
+    <form id="form-account">
+      <h2 id="account-form-title">Rekening</h2>
+      <div class="form-grid">
+        <label class="span2">Naam *<input name="name" required placeholder="bijv. Betaalrekening of Spaarrekening"></label>
+        <label>IBAN<input name="iban" placeholder="NL00 BANK 0123 4567 89"></label>
+        <label>Beginsaldo (€)<input name="startBalance" type="number" step="0.01">
+          <span class="hint">Het saldo vóór de eerste transactie in de app.</span></label>
+      </div>
+      <menu>
+        <button type="button" class="danger" id="btn-delete-account">Verwijderen</button>
+        <span class="spacer"></span>
+        <button type="button" data-close>Annuleren</button>
+        <button type="submit" class="primary">Opslaan</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-category">
+    <form id="form-category">
+      <h2 id="category-form-title">Categorie</h2>
+      <div class="form-grid">
+        <label class="span2">Naam *<input name="name" required></label>
+        <label>Soort
+          <select name="kind">
+            <option value="uit">Uitgaven</option>
+            <option value="in">Inkomsten</option>
+            <option value="overboeking">Eigen overboeking / sparen</option>
+          </select>
+          <span class="hint">Eigen overboekingen tellen niet mee als inkomsten of uitgaven.</span>
+        </label>
+        <label>Budget per maand (€)<input name="budget" type="number" min="0" step="1" placeholder="leeg = geen budget"></label>
+      </div>
+      <menu>
+        <button type="button" class="danger" id="btn-delete-category">Verwijderen</button>
+        <span class="spacer"></span>
+        <button type="button" data-close>Annuleren</button>
+        <button type="submit" class="primary">Opslaan</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-rule">
+    <form id="form-rule">
+      <h2 id="rule-form-title">Regel</h2>
+      <div class="form-grid">
+        <label class="span2">Als de naam of omschrijving dit bevat *<input name="text" required placeholder="bijv. albert heijn"></label>
+        <label class="span2">dan categorie<select name="categoryId" required></select></label>
+      </div>
+      <menu>
+        <button type="button" class="danger" id="btn-delete-rule">Verwijderen</button>
+        <span class="spacer"></span>
+        <button type="button" data-close>Annuleren</button>
+        <button type="submit" class="primary">Opslaan</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="../../gedeeld/blom.js"></script>
+  <script src="js/bankimport.js"></script>
+  <script src="js/financien.js"></script>
+</body>
+</html>

@@ -3,19 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍷</text></svg>">
   <title>Wijnkelder</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="../../gedeeld/blom.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="topbar-head">
-      <h1>🍷 Wijnkelder</h1>
-      <div id="account" class="account" hidden>
-        <span>👤 <strong id="account-name"></strong></span>
-        <button data-action="logout">Uitloggen</button>
-      </div>
-    </div>
+    <!-- Wordt gevuld door gedeeld/blom.js: terug naar het portaal, andere apps, uitloggen -->
+    <div id="blom-head" class="topbar-head" data-title="Wijnkelder" data-icon="🍷"></div>
     <nav class="tabs">
       <button data-tab="overzicht" class="active">Overzicht</button>
       <button data-tab="wijnen">Wijnen</button>
@@ -25,19 +22,6 @@
       <button data-tab="gegevens">Gegevens</button>
     </nav>
   </header>
-
-  <!-- Inloggen of de eerste admin aanmaken (alleen via de server) -->
-  <section id="auth-screen" class="auth-screen">
-    <form id="form-auth" class="card auth-card">
-      <h2 id="auth-title">Inloggen</h2>
-      <p id="auth-intro" class="muted"></p>
-      <label>Gebruikersnaam<input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false"></label>
-      <label>Wachtwoord<input name="password" type="password" required autocomplete="current-password"></label>
-      <label id="auth-repeat">Herhaal wachtwoord<input name="repeat" type="password" autocomplete="new-password"></label>
-      <p id="auth-error" class="error" role="alert"></p>
-      <button type="submit" class="primary">Inloggen</button>
-    </form>
-  </section>
 
   <main>
     <div id="banner" class="banner" role="alert" hidden></div>
@@ -116,24 +100,9 @@
             <button class="danger" data-action="clear-all">Alles wissen</button>
           </div>
         </div>
-        <!-- Alleen via de server, als je bent ingelogd -->
-        <div class="card" id="account-card" hidden>
-          <h3>Je account</h3>
-          <p>Je bent ingelogd als <strong id="account-card-name"></strong>.</p>
-          <div class="row">
-            <button data-action="change-password">Wachtwoord wijzigen</button>
-          </div>
-        </div>
       </div>
-
-      <!-- Gebruikers: alleen zichtbaar voor een admin -->
-      <div id="users-section" class="users-section" hidden>
-        <div class="toolbar">
-          <h2 class="grow">Gebruikers</h2>
-          <button class="primary" data-action="add-user">+ Gebruiker toevoegen</button>
-        </div>
-        <div id="user-list"></div>
-      </div>
+      <p class="muted small" id="portal-hint" hidden>Je account, gebruikers en koppelingen beheer je in het
+        <a href="../../">portaal van de Blom App</a>.</p>
     </section>
   </main>
 
@@ -185,6 +154,12 @@
 
   <dialog id="dlg-ai">
     <h2>Aanvullen via Claude</h2>
+    <!-- Alleen als de admin de koppeling Claude heeft ingesteld (portaal → Koppelingen) -->
+    <div id="ai-direct" class="ai-direct" hidden>
+      <button type="button" class="ai" id="btn-ai-direct">⚡ Direct aanvullen via de Claude-koppeling</button>
+      <p class="small muted" id="ai-direct-status">Claude zoekt de wijn op internet op en vult alles in. Dit duurt
+        meestal 20 tot 60 seconden en kost een paar cent API-tegoed. Of gratis via je abonnement, hieronder:</p>
+    </div>
     <p class="small muted">Het klembord onthoudt maar één ding tegelijk: plak dus meteen na elke kopie.</p>
     <ol class="steps">
       <li>
@@ -258,43 +233,6 @@
     </form>
   </dialog>
 
-  <dialog id="dlg-user">
-    <form id="form-user">
-      <h2 id="user-form-title">Gebruiker toevoegen</h2>
-      <div class="form-grid">
-        <label class="span2">Gebruikersnaam *<input name="username" required autocomplete="off" autocapitalize="none" spellcheck="false"></label>
-        <label>Rol
-          <select name="role">
-            <option value="user">Gebruiker</option>
-            <option value="admin">Admin</option>
-          </select>
-        </label>
-        <label id="user-password-label">Wachtwoord *<input name="password" type="password" autocomplete="new-password"></label>
-      </div>
-      <p id="user-error" class="error" role="alert"></p>
-      <menu>
-        <button type="button" data-close>Annuleren</button>
-        <button type="submit" class="primary">Opslaan</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="dlg-password">
-    <form id="form-password">
-      <h2>Wachtwoord wijzigen</h2>
-      <div class="form-grid">
-        <label class="span2">Huidig wachtwoord<input name="current" type="password" required autocomplete="current-password"></label>
-        <label>Nieuw wachtwoord<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
-        <label>Herhaal nieuw wachtwoord<input name="repeat" type="password" required autocomplete="new-password"></label>
-      </div>
-      <p id="password-error" class="error" role="alert"></p>
-      <menu>
-        <button type="button" data-close>Annuleren</button>
-        <button type="submit" class="primary">Opslaan</button>
-      </menu>
-    </form>
-  </dialog>
-
   <dialog id="dlg-detail">
     <div id="detail-body"></div>
     <menu id="detail-actions"></menu>
@@ -316,11 +254,11 @@
   <datalist id="dl-grapes"></datalist>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="../../gedeeld/blom.js"></script>
   <script src="js/regions.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/sample.js"></script>
   <script src="js/ai.js"></script>
-  <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

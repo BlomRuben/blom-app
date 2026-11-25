@@ -1,7 +1,10 @@
-# Wijnkelder op Unraid
+# Blom App op Unraid
 
-De app draait op je Unraid-server in een Docker-container. Je wijnen, foto's en
-back-ups staan op de server, dus je ziet op elk apparaat dezelfde kelder.
+De app draait op je Unraid-server in een Docker-container. Je gegevens, foto's en
+back-ups staan op de server, dus je ziet op elk apparaat hetzelfde.
+
+> De container, de repo en de appdata-map heten nog `wijnkelder`, van toen dit alleen de
+> wijnkelder was. Dat werkt gewoon; hernoemen naar `blom-app` kan later in één keer.
 
 ## Hoe het in elkaar zit
 
@@ -16,7 +19,7 @@ pc (Claude past de app aan)
 |---|---|
 | De code | [github.com/BlomRuben/wijnkelder](https://github.com/BlomRuben/wijnkelder) (openbaar) |
 | De container-image | `ghcr.io/blomruben/wijnkelder` |
-| Je gegevens, foto's en dagelijkse kopieën | Unraid: `/mnt/user/appdata/wijnkelder` |
+| Je gegevens, foto's, sleutels en dagelijkse kopieën | Unraid: `/mnt/user/appdata/wijnkelder` |
 
 Je gegevens komen **nooit** op GitHub: ze staan alleen op Unraid, en `.gitignore`
 houdt een lokale `data/`-map buiten git.
@@ -25,16 +28,37 @@ In de appdata-map:
 
 | Bestand of map | Wat |
 |---|---|
-| `wijnkelder.json` | je wijnen, rekken en wensenlijst |
-| `photos/` | je foto's |
-| `backups/` | een kopie per dag, de laatste 30 dagen |
+| `users.json` | accounts (wachtwoorden alleen als hash) |
+| `secret.key` | ondertekent de inlogcookies; niet delen |
+| `koppelingen.key` | versleutelt de sleutels van koppelingen; niet delen |
+| `koppelingen.json` | koppelingen voor iedereen (sleutels versleuteld) |
+| `users/<code>/wijnkelder/` | `data.json` (wijnen, rekken, wensenlijst), `photos/`, `backups/` |
+| `users/<code>/financien/` | `data.json` (rekeningen, transacties, categorieën, regels), `backups/` |
+| `users/<code>/koppelingen.json` | persoonlijke koppelingen van die gebruiker |
+| `verwijderd/` | gegevens van verwijderde gebruikers |
+
+De `<code>` van een gebruiker staat in `users.json`.
+
+## Overstap van de losse wijnkelder naar de Blom App
+
+Bij de eerste start van de nieuwe versie verhuist de app je kelder automatisch:
+`users/<code>/wijnkelder.json`, `photos/` en `backups/` gaan naar `users/<code>/wijnkelder/`.
+Er wordt niets overschreven. In het log staat dan bijvoorbeeld
+`Kelder van ruben verhuisd naar de module wijnkelder`.
+
+- Bestaande gebruikers houden hun login en krijgen de app **Wijnkelder**. **Financiën** zet je
+  als admin per gebruiker aan onder **Gebruikers** in het portaal (een admin heeft alles).
+- Je moet één keer opnieuw inloggen: het inlogcookie heeft een nieuwe naam.
+- `http://<server>:8080/` opent nu het portaal; de wijnkelder staat op `/modules/wijnkelder/`.
+- Zekerheid vooraf: maak in de oude versie een **Back-up downloaden** onder Gegevens, en/of laat
+  **Appdata Backup** draaien.
 
 ## Eenmalig: installeren
 
 ### 1–3. GitHub (al gedaan)
 De repo [BlomRuben/wijnkelder](https://github.com/BlomRuben/wijnkelder) bestaat, is
 gekoppeld aan deze map (via de GitHub-tool `gh`, ingelogd als BlomRuben), en de
-eerste image is gebouwd en openbaar op te halen.
+image is openbaar op te halen.
 
 ### 4. De container aanmaken
 Unraid → **Docker** → **Add Container**:
@@ -55,35 +79,31 @@ Daaronder via **Add another Path, Port, Variable, Label or Device**:
 
 Klik op **Apply** en open `http://<ip-van-je-server>:8080`.
 Lukt het niet, kijk dan in het Docker-tabblad bij de container naar **Logs**.
-Daar hoort te staan: `Wijnkelder draait op poort 8080, gegevens in /data`.
+Daar hoort te staan: `Blom App draait op poort 8080, gegevens in /data` en
+`Modules: wijnkelder, financien`.
 
-### 5. Je huidige gegevens verhuizen
-1. Open de oude versie op je pc (dubbelklik `index.html`) → **Gegevens** → **Back-up downloaden**.
-2. Open de app op de server → **Gegevens** → **Back-up terugzetten…** en kies dat bestand.
-
-## Inloggen en gebruikers
-- **Eerste keer:** de app vraagt je een admin-account aan te maken. Doe dat meteen na
-  het bijwerken: wie dit scherm als eerste invult, wordt admin. Een kelder die er al stond
-  (van vóór de inlogfunctie) wordt automatisch de kelder van deze admin.
-- **Gebruikers toevoegen:** als admin zie je onder de tab **Gegevens** ook het blok
-  **Gebruikers**. Iedere gebruiker
-  krijgt een eigen, lege kelder en ziet alleen de eigen wijnen.
-- **Eigen wachtwoord wijzigen:** iedereen kan dat via **Gegevens → Je account**.
-- **Wachtwoord vergeten:** een admin kan bij **Gegevens → Gebruikers → Bewerken** een nieuw
-  wachtwoord instellen. Na een wachtwoordwijziging worden andere apparaten uitgelogd.
-- **Gebruiker verwijderd:** de kelder wordt niet gewist maar apart gezet in
-  `verwijderd/` in de appdata-map.
-- **Alle accounts kwijt?** Stop de container, verwijder `users.json` uit de appdata-map
-  en start opnieuw: dan verschijnt het instelscherm weer. De kelders zelf blijven staan.
+## Inloggen, gebruikers en koppelingen
+- **Eerste keer** (lege appdata-map): de app vraagt je een admin-account aan te maken. Doe dat
+  meteen: wie dit scherm als eerste invult, wordt admin.
+- **Gebruikers toevoegen:** portaal → **Gebruikers**. Vink per gebruiker aan welke apps die mag
+  gebruiken. Iedere gebruiker heeft eigen gegevens.
+- **Eigen wachtwoord wijzigen:** portaal → **Je account**.
+- **Wachtwoord vergeten:** een admin kan bij **Gebruikers → Bewerken** een nieuw wachtwoord
+  instellen. Na een wachtwoordwijziging worden andere apparaten uitgelogd.
+- **Koppelingen:** portaal → **Koppelingen**. Vul de gegevens in, **Opslaan**, en dan
+  **Verbinding testen**. Voor Claude heb je een API-sleutel van platform.claude.com nodig.
+- **Gebruiker verwijderd:** de gegevens worden niet gewist maar apart gezet in `verwijderd/`.
+- **Alle accounts kwijt?** Stop de container, verwijder `users.json` uit de appdata-map en start
+  opnieuw: dan verschijnt het instelscherm weer. De gegevens in `users/` blijven staan, maar horen
+  bij de oude codes; zet ze zo nodig zelf in de map van het nieuwe account.
+- **`koppelingen.key` kwijt?** Dan kan de app de opgeslagen sleutels niet meer lezen. Stel de
+  koppelingen opnieuw in.
 - Na 10 foute pogingen binnen een kwartier weigert de app verdere pogingen vanaf dat apparaat.
 
-In de appdata-map staan nu: `users.json` (accounts, wachtwoorden alleen versleuteld),
-`secret.key` (ondertekent de inlogcookies; niet delen) en `users/<code>/` met per
-gebruiker `wijnkelder.json`, `photos/` en `backups/`.
-
 ## Een nieuwe versie zetten (na wijzigingen met Claude)
-1. Claude legt de wijziging vast in git (een *commit*).
-2. `git push`
+1. Claude legt de wijziging vast in git op `dev`. GitHub controleert dan of de container bouwt
+   (zonder iets te publiceren).
+2. Als je tevreden bent: `dev` samenvoegen in `main` en pushen.
 3. Wacht op het groene vinkje bij **Actions** op GitHub.
 4. Unraid → **Docker** → **Check for Updates** → bij `wijnkelder` op **apply update** klikken.
    Automatisch kan ook: installeer de plugin **CA Auto Update Applications**.
@@ -94,22 +114,26 @@ Je gegevens blijven staan: die zitten in appdata, niet in de container.
 Elke versie heeft ook een eigen code (de commit-code, te zien bij **Actions**).
 Zet in Unraid bij Repository `ghcr.io/blomruben/wijnkelder:<commit-code>` in
 plaats van `:latest`. Zet het later terug op `:latest` om weer mee te gaan met updates.
+Let op: een versie van vóór de Blom App kent de nieuwe indeling van de appdata-map niet.
+Ga je zo ver terug, zet dan ook een back-up van de appdata-map terug.
 
 ## Onderweg gebruiken
-De app heeft nu een login, maar zet poort 8080 toch **niet** open in je router: via
-gewoon `http://` gaat je wachtwoord onversleuteld over het internet.
+Zet poort 8080 **niet** open in je router: via gewoon `http://` gaat je wachtwoord
+onversleuteld over het internet, en er staan nu ook financiële gegevens in de app.
 Gebruik in plaats daarvan **Tailscale**: installeer de Tailscale-plugin op Unraid en
 de Tailscale-app op je telefoon. Dan bereik je de app overal via het Tailscale-adres
 van je server, alleen jij (Tailscale versleutelt de verbinding).
 
 Tip: via gewoon `http://` mag de browser niet bij je klembord voor foto's, dus
-“Kopieer de foto” werkt dan niet (de vraag kopiëren wel). Sleep de foto dan zelf in de
-chat, of zet in Tailscale HTTPS aan (`tailscale serve`) om een `https://`-adres te krijgen.
+"Kopieer de foto" in de wijnkelder werkt dan niet (de vraag kopiëren wel). Sleep de foto dan
+zelf in de chat, gebruik "Direct aanvullen" via de Claude-koppeling, of zet in Tailscale HTTPS
+aan (`tailscale serve`) om een `https://`-adres te krijgen.
 
 ## Back-ups
-- De server bewaart per gebruiker elke dag een kopie in `users/<code>/backups/` (de laatste 30 dagen).
-  Terugzetten: stop de container, kopieer de gewenste kopie (via de Unraid-terminal)
-  naar `/mnt/user/appdata/wijnkelder/users/<code>/wijnkelder.json` en start de container.
-  De `<code>` van een gebruiker staat in `users.json`.
-- De Unraid-plugin **Appdata Backup** neemt de gegevensmap automatisch mee.
-- Extra zekerheid: af en toe **Back-up downloaden** in de app (inclusief foto's).
+- De server bewaart per gebruiker per app elke dag een kopie in
+  `users/<code>/<app>/backups/` (de laatste 30 dagen).
+  Terugzetten: stop de container, kopieer de gewenste kopie (via de Unraid-terminal) naar
+  `/mnt/user/appdata/wijnkelder/users/<code>/<app>/data.json` en start de container.
+- De Unraid-plugin **Appdata Backup** neemt de hele gegevensmap automatisch mee.
+- Extra zekerheid: af en toe **Back-up downloaden** in de app (wijnkelder: onder Gegevens,
+  inclusief foto's; financiën: onder Instellingen).
